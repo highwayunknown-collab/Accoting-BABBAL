@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1027538713805",
+    "project_id": "gen-lang-client-0173652470",
+    "storage_bucket": "gen-lang-client-0173652470.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1027538713805:android:e411d8d31f3ac326e23d84",
+        "android_client_info": {
+          "package_name": "com.aistudio.babbalfinance.krmvqt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1027538713805-km4gg69iid2rfjmbosaktfoo6h78cmrv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aistudio.babbalfinance.krmvqt",
+            "certificate_hash": "0bf6fa7c23d07855f70c703166d41d62599ad029"
+          }
+        },
+        {
+          "client_id": "1027538713805-fns6a833ks9nr8qds3juof0o1nvn22f2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmAQaOnMPkCV7INyM4b9KCh2guL8TwXYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1027538713805-fns6a833ks9nr8qds3juof0o1nvn22f2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

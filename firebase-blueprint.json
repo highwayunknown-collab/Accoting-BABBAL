@@ -1,0 +1,258 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile & Synced Preferences",
+      "description": "Authenticated user's profile and workspace/display settings synced across PC and phone.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID matching the document ID." },
+        "email": { "type": "string", "description": "User's Google account email." },
+        "displayName": { "type": "string", "description": "User's display name." },
+        "personalWorkspaceName": { "type": "string", "description": "Custom label for Personal workspace." },
+        "businessWorkspaceName": { "type": "string", "description": "Custom label for GVVS Business workspace." },
+        "currencySymbol": { "type": "string", "description": "Currency symbol such as ₹." },
+        "currencyCode": { "type": "string", "description": "ISO currency code such as INR." },
+        "dateFormatId": { "type": "string", "enum": ["DD_MM_YYYY", "DD_MMM_YYYY", "YYYY_MM_DD"] },
+        "financialYearStartMonth": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "themeModeId": { "type": "string", "enum": ["SYSTEM", "LIGHT", "DARK"] },
+        "lastSyncedDevice": { "type": "string", "description": "Identifier of the last syncing device." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "uid",
+        "email",
+        "displayName",
+        "personalWorkspaceName",
+        "businessWorkspaceName",
+        "currencySymbol",
+        "currencyCode",
+        "dateFormatId",
+        "financialYearStartMonth",
+        "themeModeId",
+        "lastSyncedDevice",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Account": {
+      "title": "Synced Account",
+      "description": "Cash, Bank, UPI, or Other financial account scoped to a workspace.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "workspaceId": { "type": "string", "enum": ["PERSONAL", "GVVS"] },
+        "typeId": { "type": "string", "enum": ["CASH", "BANK", "UPI", "OTHER"] },
+        "openingBalancePaise": { "type": "integer" },
+        "isDefault": { "type": "boolean" },
+        "createdAtMillis": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "name",
+        "workspaceId",
+        "typeId",
+        "openingBalancePaise",
+        "isDefault",
+        "createdAtMillis",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Category": {
+      "title": "Synced Category",
+      "description": "Income or Expense category scoped to a workspace.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "workspaceId": { "type": "string", "enum": ["PERSONAL", "GVVS"] },
+        "typeId": { "type": "string", "enum": ["INCOME", "EXPENSE"] },
+        "colorHex": { "type": "integer" },
+        "iconName": { "type": "string" },
+        "isDefault": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "name",
+        "workspaceId",
+        "typeId",
+        "colorHex",
+        "iconName",
+        "isDefault",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Transaction": {
+      "title": "Synced Transaction",
+      "description": "Income, Expense, or internal Account Transfer record.",
+      "type": "object",
+      "properties": {
+        "workspaceId": { "type": "string", "enum": ["PERSONAL", "GVVS"] },
+        "typeId": { "type": "string", "enum": ["INCOME", "EXPENSE", "TRANSFER"] },
+        "amountPaise": { "type": "integer", "minimum": 1 },
+        "dateMillis": { "type": "integer" },
+        "categorySyncId": { "type": "string" },
+        "accountSyncId": { "type": "string" },
+        "toAccountSyncId": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAtMillis": { "type": "integer" },
+        "updatedAtMillis": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "workspaceId",
+        "typeId",
+        "amountPaise",
+        "dateMillis",
+        "categorySyncId",
+        "accountSyncId",
+        "toAccountSyncId",
+        "description",
+        "createdAtMillis",
+        "updatedAtMillis",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Budget": {
+      "title": "Synced Monthly Budget",
+      "description": "Monthly expense budget cap for a workspace or specific category.",
+      "type": "object",
+      "properties": {
+        "workspaceId": { "type": "string", "enum": ["PERSONAL", "GVVS"] },
+        "categorySyncId": { "type": "string" },
+        "month": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "year": { "type": "integer", "minimum": 2000, "maximum": 2100 },
+        "limitPaise": { "type": "integer", "minimum": 1 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "workspaceId",
+        "categorySyncId",
+        "month",
+        "year",
+        "limitPaise",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SavingsGoal": {
+      "title": "Synced Savings Goal",
+      "description": "Savings target or emergency fund goal.",
+      "type": "object",
+      "properties": {
+        "workspaceId": { "type": "string", "enum": ["PERSONAL", "GVVS"] },
+        "name": { "type": "string" },
+        "isEmergencyFund": { "type": "boolean" },
+        "targetPaise": { "type": "integer", "minimum": 1 },
+        "currentSavedPaise": { "type": "integer", "minimum": 0 },
+        "monthlyTargetPaise": { "type": "integer", "minimum": 0 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "workspaceId",
+        "name",
+        "isEmergencyFund",
+        "targetPaise",
+        "currentSavedPaise",
+        "monthlyTargetPaise",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Loan": {
+      "title": "Synced Loan Record",
+      "description": "Money lent or borrowed record.",
+      "type": "object",
+      "properties": {
+        "workspaceId": { "type": "string", "enum": ["PERSONAL", "GVVS"] },
+        "typeId": { "type": "string", "enum": ["LENT", "BORROWED"] },
+        "personName": { "type": "string" },
+        "principalPaise": { "type": "integer", "minimum": 1 },
+        "repaidPaise": { "type": "integer", "minimum": 0 },
+        "accountSyncId": { "type": "string" },
+        "dateMillis": { "type": "integer" },
+        "expectedRepaymentDateMillis": { "type": "integer" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "workspaceId",
+        "typeId",
+        "personName",
+        "principalPaise",
+        "repaidPaise",
+        "accountSyncId",
+        "dateMillis",
+        "expectedRepaymentDateMillis",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "LoanRepayment": {
+      "title": "Synced Loan Repayment",
+      "description": "Partial or full repayment associated with a loan.",
+      "type": "object",
+      "properties": {
+        "loanSyncId": { "type": "string" },
+        "amountPaise": { "type": "integer", "minimum": 1 },
+        "dateMillis": { "type": "integer" },
+        "accountSyncId": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "loanSyncId",
+        "amountPaise",
+        "dateMillis",
+        "accountSyncId",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile and synced workspace/app preferences."
+    },
+    "/users/{userId}/accounts/{accountId}": {
+      "schema": { "$ref": "#/entities/Account" },
+      "description": "User's synced financial accounts."
+    },
+    "/users/{userId}/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "User's synced income and expense categories."
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "User's synced income, expense, and transfer transactions."
+    },
+    "/users/{userId}/budgets/{budgetId}": {
+      "schema": { "$ref": "#/entities/Budget" },
+      "description": "User's synced monthly budgets."
+    },
+    "/users/{userId}/savings_goals/{goalId}": {
+      "schema": { "$ref": "#/entities/SavingsGoal" },
+      "description": "User's synced savings goals."
+    },
+    "/users/{userId}/loans/{loanId}": {
+      "schema": { "$ref": "#/entities/Loan" },
+      "description": "User's synced lending and borrowing records."
+    },
+    "/users/{userId}/loan_repayments/{repaymentId}": {
+      "schema": { "$ref": "#/entities/LoanRepayment" },
+      "description": "User's synced loan repayments."
+    }
+  }
+}

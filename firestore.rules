@@ -1,0 +1,289 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9._-]+$');
+    }
+
+    function isValidString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidWorkspace(ws) {
+      return ws in ['PERSONAL', 'GVVS'];
+    }
+
+    function hasValidTimestampsOnCreate(data) {
+      return data.createdAt is timestamp
+        && data.createdAt <= request.time
+        && data.updatedAt is timestamp
+        && data.updatedAt <= request.time;
+    }
+
+    function hasValidTimestampsOnUpdate(data, existing) {
+      return data.createdAt == existing.createdAt
+        && data.updatedAt is timestamp
+        && data.updatedAt <= request.time;
+    }
+
+    function isValidUserProfile(data, userId) {
+      let reqFields = [
+        'uid', 'email', 'displayName', 'personalWorkspaceName', 'businessWorkspaceName',
+        'currencySymbol', 'currencyCode', 'dateFormatId', 'financialYearStartMonth',
+        'themeModeId', 'lastSyncedDevice', 'createdAt', 'updatedAt'
+      ];
+      return data.keys().hasAll(reqFields)
+        && data.keys().hasOnly(reqFields)
+        && data.uid == userId
+        && isValidString(data.email, 0, 254)
+        && isValidString(data.displayName, 0, 120)
+        && isValidString(data.personalWorkspaceName, 1, 60)
+        && isValidString(data.businessWorkspaceName, 1, 60)
+        && isValidString(data.currencySymbol, 1, 8)
+        && isValidString(data.currencyCode, 1, 10)
+        && data.dateFormatId in ['DD_MM_YYYY', 'DD_MMM_YYYY', 'YYYY_MM_DD']
+        && data.financialYearStartMonth is int
+        && data.financialYearStartMonth >= 1
+        && data.financialYearStartMonth <= 12
+        && data.themeModeId in ['SYSTEM', 'LIGHT', 'DARK']
+        && isValidString(data.lastSyncedDevice, 1, 120);
+    }
+
+    function isValidAccount(data) {
+      let reqFields = [
+        'name', 'workspaceId', 'typeId', 'openingBalancePaise',
+        'isDefault', 'createdAtMillis', 'createdAt', 'updatedAt'
+      ];
+      return data.keys().hasAll(reqFields)
+        && data.keys().hasOnly(reqFields)
+        && isValidString(data.name, 1, 80)
+        && isValidWorkspace(data.workspaceId)
+        && data.typeId in ['CASH', 'BANK', 'UPI', 'OTHER']
+        && data.openingBalancePaise is int
+        && data.isDefault is bool
+        && data.createdAtMillis is int
+        && data.createdAtMillis >= 0;
+    }
+
+    function isValidCategory(data) {
+      let reqFields = [
+        'name', 'workspaceId', 'typeId', 'colorHex', 'iconName',
+        'isDefault', 'createdAt', 'updatedAt'
+      ];
+      return data.keys().hasAll(reqFields)
+        && data.keys().hasOnly(reqFields)
+        && isValidString(data.name, 1, 80)
+        && isValidWorkspace(data.workspaceId)
+        && data.typeId in ['INCOME', 'EXPENSE']
+        && data.colorHex is int
+        && isValidString(data.iconName, 1, 60)
+        && data.isDefault is bool;
+    }
+
+    function isValidTransaction(data) {
+      let reqFields = [
+        'workspaceId', 'typeId', 'amountPaise', 'dateMillis',
+        'categorySyncId', 'accountSyncId', 'toAccountSyncId',
+        'description', 'createdAtMillis', 'updatedAtMillis',
+        'createdAt', 'updatedAt'
+      ];
+      return data.keys().hasAll(reqFields)
+        && data.keys().hasOnly(reqFields)
+        && isValidWorkspace(data.workspaceId)
+        && data.typeId in ['INCOME', 'EXPENSE', 'TRANSFER']
+        && data.amountPaise is int
+        && data.amountPaise > 0
+        && data.dateMillis is int
+        && data.dateMillis > 0
+        && isValidString(data.categorySyncId, 0, 128)
+        && isValidString(data.accountSyncId, 1, 128)
+        && isValidString(data.toAccountSyncId, 0, 128)
+        && isValidString(data.description, 0, 500)
+        && data.createdAtMillis is int
+        && data.createdAtMillis >= 0
+        && data.updatedAtMillis is int
+        && data.updatedAtMillis >= 0;
+    }
+
+    function isValidBudget(data) {
+      let reqFields = [
+        'workspaceId', 'categorySyncId', 'month', 'year',
+        'limitPaise', 'createdAt', 'updatedAt'
+      ];
+      return data.keys().hasAll(reqFields)
+        && data.keys().hasOnly(reqFields)
+        && isValidWorkspace(data.workspaceId)
+        && isValidString(data.categorySyncId, 0, 128)
+        && data.month is int && data.month >= 1 && data.month <= 12
+        && data.year is int && data.year >= 2000 && data.year <= 2100
+        && data.limitPaise is int && data.limitPaise > 0;
+    }
+
+    function isValidSavingsGoal(data) {
+      let reqFields = [
+        'workspaceId', 'name', 'isEmergencyFund', 'targetPaise',
+        'currentSavedPaise', 'monthlyTargetPaise', 'createdAt', 'updatedAt'
+      ];
+      return data.keys().hasAll(reqFields)
+        && data.keys().hasOnly(reqFields)
+        && isValidWorkspace(data.workspaceId)
+        && isValidString(data.name, 1, 120)
+        && data.isEmergencyFund is bool
+        && data.targetPaise is int && data.targetPaise > 0
+        && data.currentSavedPaise is int && data.currentSavedPaise >= 0
+        && data.monthlyTargetPaise is int && data.monthlyTargetPaise >= 0;
+    }
+
+    function isValidLoan(data) {
+      let reqFields = [
+        'workspaceId', 'typeId', 'personName', 'principalPaise',
+        'repaidPaise', 'accountSyncId', 'dateMillis',
+        'expectedRepaymentDateMillis', 'notes', 'createdAt', 'updatedAt'
+      ];
+      return data.keys().hasAll(reqFields)
+        && data.keys().hasOnly(reqFields)
+        && isValidWorkspace(data.workspaceId)
+        && data.typeId in ['LENT', 'BORROWED']
+        && isValidString(data.personName, 1, 120)
+        && data.principalPaise is int && data.principalPaise > 0
+        && data.repaidPaise is int && data.repaidPaise >= 0
+        && isValidString(data.accountSyncId, 1, 128)
+        && data.dateMillis is int && data.dateMillis > 0
+        && data.expectedRepaymentDateMillis is int && data.expectedRepaymentDateMillis >= 0
+        && isValidString(data.notes, 0, 500);
+    }
+
+    function isValidLoanRepayment(data) {
+      let reqFields = [
+        'loanSyncId', 'amountPaise', 'dateMillis',
+        'accountSyncId', 'notes', 'createdAt', 'updatedAt'
+      ];
+      return data.keys().hasAll(reqFields)
+        && data.keys().hasOnly(reqFields)
+        && isValidString(data.loanSyncId, 1, 128)
+        && data.amountPaise is int && data.amountPaise > 0
+        && data.dateMillis is int && data.dateMillis > 0
+        && isValidString(data.accountSyncId, 1, 128)
+        && isValidString(data.notes, 0, 500);
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && isValidId(userId)
+        && isValidUserProfile(request.resource.data, userId)
+        && hasValidTimestampsOnCreate(request.resource.data);
+      allow update: if isOwner(userId)
+        && isValidId(userId)
+        && isValidUserProfile(request.resource.data, userId)
+        && request.resource.data.uid == resource.data.uid
+        && hasValidTimestampsOnUpdate(request.resource.data, resource.data);
+      allow delete: if false;
+
+      match /accounts/{accountId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(accountId)
+          && isValidAccount(request.resource.data)
+          && hasValidTimestampsOnCreate(request.resource.data);
+        allow update: if isOwner(userId)
+          && isValidId(accountId)
+          && isValidAccount(request.resource.data)
+          && hasValidTimestampsOnUpdate(request.resource.data, resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /categories/{categoryId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(categoryId)
+          && isValidCategory(request.resource.data)
+          && hasValidTimestampsOnCreate(request.resource.data);
+        allow update: if isOwner(userId)
+          && isValidId(categoryId)
+          && isValidCategory(request.resource.data)
+          && hasValidTimestampsOnUpdate(request.resource.data, resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /transactions/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(transactionId)
+          && isValidTransaction(request.resource.data)
+          && hasValidTimestampsOnCreate(request.resource.data);
+        allow update: if isOwner(userId)
+          && isValidId(transactionId)
+          && isValidTransaction(request.resource.data)
+          && hasValidTimestampsOnUpdate(request.resource.data, resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /budgets/{budgetId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(budgetId)
+          && isValidBudget(request.resource.data)
+          && hasValidTimestampsOnCreate(request.resource.data);
+        allow update: if isOwner(userId)
+          && isValidId(budgetId)
+          && isValidBudget(request.resource.data)
+          && hasValidTimestampsOnUpdate(request.resource.data, resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /savings_goals/{goalId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(goalId)
+          && isValidSavingsGoal(request.resource.data)
+          && hasValidTimestampsOnCreate(request.resource.data);
+        allow update: if isOwner(userId)
+          && isValidId(goalId)
+          && isValidSavingsGoal(request.resource.data)
+          && hasValidTimestampsOnUpdate(request.resource.data, resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /loans/{loanId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(loanId)
+          && isValidLoan(request.resource.data)
+          && hasValidTimestampsOnCreate(request.resource.data);
+        allow update: if isOwner(userId)
+          && isValidId(loanId)
+          && isValidLoan(request.resource.data)
+          && hasValidTimestampsOnUpdate(request.resource.data, resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /loan_repayments/{repaymentId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(repaymentId)
+          && isValidLoanRepayment(request.resource.data)
+          && hasValidTimestampsOnCreate(request.resource.data);
+        allow update: if isOwner(userId)
+          && isValidId(repaymentId)
+          && isValidLoanRepayment(request.resource.data)
+          && hasValidTimestampsOnUpdate(request.resource.data, resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
